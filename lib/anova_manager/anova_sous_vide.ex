@@ -21,6 +21,17 @@ defmodule AnovaWebSocket do
     WebSockex.cast(__MODULE__, :close)
   end
 
+  def get_APC_wifi_list() do
+    case Process.whereis(__MODULE__) do
+      nil ->
+        {:error, :not_connected}
+
+      pid ->
+          state = :sys.get_state(pid)
+          {:ok, Map.get(state, :EVENT_APC_WIFI_LIST, [])}
+    end
+  end
+
   def handle_frame({:text, msg}, state) do
     with {:ok, msg_map} <- JSON.decode(msg) do
       state =
