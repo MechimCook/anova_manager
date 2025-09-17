@@ -21,7 +21,8 @@ defmodule AnovaManager.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:websockex, "~> 0.4.3"}
+      {:websockex, "~> 0.4.3"},
+      {:jason, "~> 1.4"}
     ]
   end
 end

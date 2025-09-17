@@ -33,22 +33,18 @@ defmodule AnovaWebSocket do
   end
 
   def handle_frame({:text, msg}, state) do
-    with {:ok, msg_map} <- JSON.decode(msg) do
-      state =
-      case Map.get(msg_map, "command") do
-      "EVENT_APC_WIFI_LIST" ->
-        %{state | EVENT_APC_WIFI_LIST: Map.get(msg_map, "payload")}
-      _ ->
-        state
-      end
-      {:ok, state}
-    else
-        {:error, _} -> IO.puts("⚠️ Failed to decode message: #{msg}")
+    with {:ok, msg} <- Jason.decode(msg) do
+      case Map.get(msg, "command") do
+        "EVENT_APC_WIFI_LIST" ->
+          {:ok, %{state | EVENT_APC_WIFI_LIST: Map.get(msg, "payload")}}
+        _ ->
           {:ok, state}
+      end
+    else
+      {:error, _} -> IO.puts("⚠️ Failed to decode message: #{msg}")
+        {:ok, state}
     end
   end
-
-  def
 
   def handle_cast(:close, state) do
     IO.puts("🔌 Disconnecting from server")
@@ -67,3 +63,7 @@ defmodule AnovaWebSocket do
     end
   end
 end
+token="anova-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJDRVFNeGJlYjhXTlg0ZmJnVGRPOU1NM2RzQXYxIiwiY3JlYXRlZEF0IjoxNzU3NjE5OTQ5MzE3fQ.UX75mNaGwqiHxojpVsMbwoMJZ-rEVyEpSoEaqwP2Fc0"
+{:ok, pid} = AnovaWebSocket.connect(token)
+AnovaWebSocket.get_APC_wifi_list()
+AnovaWebSocket.disconect()
