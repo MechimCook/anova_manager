@@ -77,12 +77,7 @@ defmodule AnovaWebSocket do
 
   def handle_frame({:text, msg}, state) do
     with {:ok, msg} <- Jason.decode(msg) do
-      case Map.get(msg, "command") do
-        "EVENT_APC_WIFI_LIST" ->
-          {:ok, %{state | EVENT_APC_WIFI_LIST: Map.get(msg, "payload")}}
-        _ ->
-          {:ok, state}
-      end
+      handle_message(msg, state)
     else
       {:error, _} -> IO.puts("⚠️ Failed to decode message: #{msg}")
         {:ok, state}
@@ -94,6 +89,29 @@ defmodule AnovaWebSocket do
     {:close, state}
   end
 
+
+  defp handle_message(%{"command" => "EVENT_APC_WIFI_LIST", "payload" => payload}, state), do:
+    {:ok, %{state | EVENT_APC_WIFI_LIST: payload}}
+
+  defp handle_message(%{"command" => "RESPONSE", "payload" => %{"status" => "ok"}} = msg, state) do
+    IO.puts("✅ Command response received: #{inspect(msg)}")
+    {:ok, state}
+  end
+
+  defp handle_message(%{"command" => "RESPONSE", "payload" => %{"status" => "error", "error" => error_msg}}, state) do
+    IO.puts("❌ Command error: #{error_msg}")
+    {:ok, state}
+  end
+
+  defp handle_message(%{"command" => "EVENT_APC_STATE", "payload" => %{"state" => %{"pin-info" => info}}}, state) do
+    IO.inspect(info)
+    {:ok, state}
+  end
+
+  defp handle_message(msg, state) do
+    IO.puts("ℹ️ Unhandled message: #{inspect(msg)}")
+    {:ok, state}
+  end
 
   defp wait_for_device_discovery(timeout \\ 5_000) do
     receive do
