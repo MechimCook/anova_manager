@@ -1,11 +1,14 @@
 # AnovaManager
 
-**TODO: Add description**
+**TODO: Setup cloudflare**
+**TODO: Setup NGROX**
+**TODO: keep warm mode**
+**TODO: Setup jobs**
+**TODO: Manual interface**
+**TODO: Recipe listings**
+**TODO: Recipe start option**
 
 ## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `anova_manager` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -15,7 +18,21 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/anova_manager>.
+examples for websocket
 
+```elixir
+{:ok, pid} = AnovaWebSocket.connect(token)
+{:ok,
+ [
+   %{
+     "cookerId" => cookerId,
+     "type" => type
+   }
+ ]} = AnovaWebSocket.get_APC_wifi_list()
+AnovaWebSocket.start_cooking(%{cookerId: cookerId, type: type, unit: "F", targetTemperature: 135, timer: 60})
+AnovaWebSocket.stop_cooking(%{cookerId: cookerId, type: type})
+```
+
+error modes
+"LOW WATER"
+"DEVICE FAILURE"
