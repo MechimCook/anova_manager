@@ -2,7 +2,6 @@
 
 **TODO: Setup cloudflare**
 **TODO: Setup NGROX**
-**TODO: keep warm mode**
 **TODO: Setup jobs**
 **TODO: Manual interface**
 **TODO: Recipe listings**
