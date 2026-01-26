@@ -14,6 +14,7 @@ defmodule AnovaManager.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {AnovaManager.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -23,7 +24,9 @@ defmodule AnovaManager.MixProject do
     [
       {:websockex, "~> 0.4.3"},
       {:jason, "~> 1.4"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:plug, "~> 1.14"},
+      {:plug_cowboy, "~> 2.6"}
     ]
   end
 end
