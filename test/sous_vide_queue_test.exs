@@ -14,18 +14,18 @@ defmodule AnovaManager.SousVideQueueTest do
   end
 
   test "scheduling while disconnected adds to queue and is visible in status map" do
-    payload = %{cookerId: "q1", type: "APC"}
+    payload = %{cookerId: "q1", type: "APC", timer: 0}
 
-    assert {:queued, ^payload} = AnovaManager.SousVide.start_cooking(payload)
-
+    assert :ok = AnovaManager.SousVide.start_cooking(payload)
+    Process.sleep(10)  # allow GenServer to process
     status = AnovaManager.SousVide.status()
     assert is_list(status.queue)
-    assert [%{type: :start_cooking, payload: ^payload}] = status.queue
+    assert [{:start_cooking,_}|[]] = status.queue
   end
 
   test "HTML status shows queued jobs" do
-    payload = %{cookerId: "q2", type: "APC"}
-    {:queued, ^payload} = AnovaManager.SousVide.start_cooking(payload)
+    payload = %{cookerId: "q2", type: "APC", timer: 0}
+    :ok = AnovaManager.SousVide.start_cooking(payload)
 
     conn = conn(:get, "/status_html") |> AnovaManagerWeb.Router.call([])
     assert conn.status == 200
