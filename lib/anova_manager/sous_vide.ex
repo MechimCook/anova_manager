@@ -128,17 +128,9 @@ defmodule AnovaManager.SousVide do
     {:reply, :ok, %{state | ws_pid: nil, connected: false}}
   end
 
-  def schedule_cooking(%{timer: timer} = payload) do
-    Process.send_after(self(), {:perform_cooking, payload}, timer)
-  end
-
-  def handle_call({:start_cooking, payload}, _from, %{connected: true, ws_pid: pid} = state) do
-    send_command(pid, "CMD_APC_START", payload)
-    {:reply, :ok, state}
-  end
-
-  def handle_call({:start_cooking, payload}, _from, state) do
-    {:reply, {:queued, payload}, %{state | queue: state.queue ++ [{:start_cooking, payload}]}}
+  def handle_call({:schedule_cooking, %{timer: timer} = payload}, _from, state) do
+        Process.send_after(self(), {:start_cooking, payload}, timer)
+        {:reply, :ok, state}
   end
 
   def handle_call({:stop_cooking, payload}, _from, %{connected: true, ws_pid: pid} = state) do
@@ -162,15 +154,22 @@ defmodule AnovaManager.SousVide do
     status = %{
       connected: state.connected,
       has_token: not is_nil(state.token),
-      queue: Enum.map(state.queue, fn
-        {type, payload} -> %{type: type, payload: payload}
-      end),
+      queue: state.queue,
       wifi_list: Map.get(state, :EVENT_APC_WIFI_LIST, []),
       last_apc_state: state.last_apc_state,
       backoff: state.backoff
     }
 
     {:reply, status, state}
+  end
+
+  def handle_info({:start_cooking, payload}, %{connected: true, ws_pid: pid} = state) do
+    send_command(pid, "CMD_APC_START", payload)
+    {:noreply, state}
+  end
+
+  def handle_info({:start_cooking, payload}, state) do
+    {:noreply, %{state | queue: state.queue ++ [{:start_cooking, payload}]}}
   end
 
   def handle_info({:auto_connect, token}, state) do
