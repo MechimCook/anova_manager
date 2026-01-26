@@ -3,6 +3,9 @@ defmodule TestWsSuccess do
     parent = Map.get(state, :parent)
     pid = spawn_link(fn -> receive do :stop -> :ok end end)
     if parent, do: send(parent, {:ws_connected, pid})
+    # notify test process
+    test_pid = Application.get_env(:anova_manager, :test_pid)
+    if test_pid, do: send(test_pid, :connected)
     {:ok, pid}
   end
 

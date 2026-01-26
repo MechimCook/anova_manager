@@ -20,6 +20,9 @@ defmodule AnovaManager.SousVideTokenTest do
     # tell the running GenServer to attempt auto-connect using the env token
     send(AnovaManager.SousVide, {:auto_connect, "test-token"})
 
+    # wait for connection
+    assert_receive :connected, 200
+
     payload = %{cookerId: "abc", type: "APC", timer: 0}
     :ok = AnovaManager.SousVide.start_cooking(payload)
     Process.sleep(10)  # allow GenServer to process
