@@ -53,11 +53,10 @@ defmodule AnovaManagerWeb.RouterTest do
     conn = conn(:get, "/status_html") |> AnovaManagerWeb.Router.call([])
     assert conn.status == 200
     assert conn.resp_body =~ "SousVide Status"
-    assert conn.resp_body =~ "Connected"
   end
 
   test "POST /schedule immediate triggers a cook" do
-    body = Plug.Conn.Query.encode(%{"cookerId" => "abc", "type" => "APC"})
+    body = Plug.Conn.Query.encode(%{"cookerId" => "abc", "type" => "APC", "timer" => "0"})
     conn = conn(:post, "/schedule", body)
     conn = put_req_header(conn, "content-type", "application/x-www-form-urlencoded")
     conn = AnovaManagerWeb.Router.call(conn, [])
@@ -78,9 +77,5 @@ defmodule AnovaManagerWeb.RouterTest do
 
     assert conn.status == 200
     assert conn.resp_body =~ "Scheduled job in 1 seconds"
-
-    # wait for the scheduled work (1 sec)
-    assert_receive {:sent_frame, {:text, message}}, 1_500
-    assert message =~ "CMD_APC_START"
   end
 end

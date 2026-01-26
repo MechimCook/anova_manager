@@ -17,7 +17,7 @@ defmodule AnovaManager.SousVideTokenTest do
     # tell the running GenServer to attempt auto-connect using the env token
     send(AnovaManager.SousVide, {:auto_connect, "test-token"})
 
-    payload = %{cookerId: "abc", type: "APC"}
+    payload = %{cookerId: "abc", type: "APC", timer: 0}
     :ok = AnovaManager.SousVide.start_cooking(payload)
 
     # expect TestWsSuccess to send us the sent_frame message when send_frame is called
