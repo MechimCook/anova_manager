@@ -16,7 +16,6 @@ defmodule AnovaManager.SousVide do
   # dynamic helpers so tests can override backoff and ws module via application env
   defp ws_module(), do: Application.get_env(:anova_manager, :ws_module, WebSockex)
   defp initial_backoff(), do: Application.get_env(:anova_manager, :initial_backoff, @initial_backoff)
-  defp max_backoff(), do: Application.get_env(:anova_manager, :max_backoff, @max_backoff)
 
   # Public API
   def start_link(_opts) do
@@ -33,7 +32,7 @@ defmodule AnovaManager.SousVide do
   end
 
   def start_cooking(payload) when is_map(payload) do
-    GenServer.call(__MODULE__, {:start_cooking, payload})
+    GenServer.call(__MODULE__, {:schedule_cooking, payload})
   end
 
   @doc "Enqueue a job explicitly (keeps it in the queue until flushed)"
@@ -93,24 +92,6 @@ defmodule AnovaManager.SousVide do
     {:ok, state}
   end
 
-  def handle_call({:connect, token}, _from, state) do
-    case do_connect(token, state) do
-      {:ok, pid, new_state} ->
-        {:reply, {:ok, pid}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  def handle_info({:auto_connect, token}, state) do
-    # attempt an async connect during initialization
-    case do_connect(token, state) do
-      {:ok, _pid, new_state} -> {:noreply, new_state}
-      {:error, _reason, new_state} -> {:noreply, new_state}
-    end
-  end
-
   defp do_connect(token, state) do
     uri = "#{@base_url}?token=#{token}&supportedAccessories=APC,APO"
     ws = ws_module()
@@ -128,6 +109,16 @@ defmodule AnovaManager.SousVide do
     end
   end
 
+  def handle_call({:connect, token}, _from, state) do
+    case do_connect(token, state) do
+      {:ok, pid, new_state} ->
+        {:reply, {:ok, pid}, new_state}
+
+      {:error, reason, new_state} ->
+        {:reply, {:error, reason}, new_state}
+    end
+  end
+
   def handle_call(:disconnect, _from, %{ws_pid: nil} = state), do: {:reply, {:error, :not_connected}, state}
 
   def handle_call(:disconnect, _from, state) do
@@ -135,6 +126,10 @@ defmodule AnovaManager.SousVide do
     ws = ws_module()
     ws.cast(pid, :close)
     {:reply, :ok, %{state | ws_pid: nil, connected: false}}
+  end
+
+  def schedule_cooking(%{timer: timer} = payload) do
+    Process.send_after(self(), {:perform_cooking, payload}, timer)
   end
 
   def handle_call({:start_cooking, payload}, _from, %{connected: true, ws_pid: pid} = state) do
@@ -176,6 +171,14 @@ defmodule AnovaManager.SousVide do
     }
 
     {:reply, status, state}
+  end
+
+  def handle_info({:auto_connect, token}, state) do
+    # attempt an async connect during initialization
+    case do_connect(token, state) do
+      {:ok, _pid, new_state} -> {:noreply, new_state}
+      {:error, _reason, new_state} -> {:noreply, new_state}
+    end
   end
 
   # handle messages from the WebSocket handler
