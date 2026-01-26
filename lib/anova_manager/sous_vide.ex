@@ -229,6 +229,13 @@ defmodule AnovaManager.SousVide do
     end
   end
 
+  def handle_info(:disconnect, state) do
+    if state.ws_pid do
+      send(state.ws_pid, :stop)
+    end
+    {:noreply, %{state | connected: false, ws_pid: nil}}
+  end
+
   defp send_command(pid, command, payload) do
     message = %{
       command: command,

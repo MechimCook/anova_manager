@@ -6,6 +6,9 @@ defmodule AnovaManager.SousVideTokenTest do
     # ensure tests control the WS module and backoff values
     Application.put_env(:anova_manager, :initial_backoff, 10)
     Application.put_env(:anova_manager, :max_backoff, 50)
+    # disconnect to ensure clean state
+    send(AnovaManager.SousVide, :disconnect)
+    Process.sleep(10)
     :ok
   end
 
@@ -19,6 +22,7 @@ defmodule AnovaManager.SousVideTokenTest do
 
     payload = %{cookerId: "abc", type: "APC", timer: 0}
     :ok = AnovaManager.SousVide.start_cooking(payload)
+    Process.sleep(10)  # allow GenServer to process
 
     # expect TestWsSuccess to send us the sent_frame message when send_frame is called
     assert_receive {:sent_frame, {:text, message}}, 200
@@ -48,52 +52,4 @@ defmodule AnovaManager.SousVideTokenTest do
     # Wait for successful second connect; TestWsSeq will send :connected message
     assert_receive :connected, 200
   end
-end
-
-# test helpers
-
-defmodule TestWsSuccess do
-  def start_link(_uri, _handler, state) do
-    parent = Map.get(state, :parent)
-    pid = spawn_link(fn -> receive do :stop -> :ok end end)
-    if parent, do: send(parent, {:ws_connected, pid})
-    {:ok, pid}
-  end
-
-  def send_frame(_pid, frame) do
-    test_pid = Application.get_env(:anova_manager, :test_pid)
-    if test_pid, do: send(test_pid, {:sent_frame, frame})
-    :ok
-  end
-
-  def cast(pid, msg), do: send(pid, msg)
-end
-
-defmodule TestWsSeq do
-  def start_link(_uri, _handler, state) do
-    case Agent.get_and_update(:ws_seq, fn
-           [h | t] -> {h, t}
-           [] -> {:ok, []}
-         end) do
-      :error ->
-        {:error, :econnrefused}
-
-      :ok ->
-        parent = Map.get(state, :parent)
-        pid = spawn_link(fn -> receive do :stop -> :ok end end)
-        if parent, do: send(parent, {:ws_connected, pid})
-        # notify test process
-        test_pid = Application.get_env(:anova_manager, :test_pid)
-        if test_pid, do: send(test_pid, :connected)
-        {:ok, pid}
-    end
-  end
-
-  def send_frame(_pid, frame) do
-    test_pid = Application.get_env(:anova_manager, :test_pid)
-    if test_pid, do: send(test_pid, {:sent_frame, frame})
-    :ok
-  end
-
-  def cast(pid, msg), do: send(pid, msg)
 end

@@ -21,21 +21,3 @@ defmodule AnovaManager.SousVideStateTest do
     assert status[:last_apc_state] == msg["payload"]
   end
 end
-
-# reuse TestWsSuccess helper used elsewhere in tests
-defmodule TestWsSuccess do
-  def start_link(_uri, _handler, state) do
-    parent = Map.get(state, :parent)
-    pid = spawn_link(fn -> receive do :stop -> :ok end end)
-    if parent, do: send(parent, {:ws_connected, pid})
-    {:ok, pid}
-  end
-
-  def send_frame(_pid, frame) do
-    test_pid = Application.get_env(:anova_manager, :test_pid)
-    if test_pid, do: send(test_pid, {:sent_frame, frame})
-    :ok
-  end
-
-  def cast(pid, msg), do: send(pid, msg)
-end
