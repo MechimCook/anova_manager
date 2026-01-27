@@ -18,10 +18,15 @@ defmodule AnovaManagerWeb.Pages.Status do
       state = status[:last_apc_state]["state"]
       cooker_status =
       if state do
+        temp_info = state["temperature-info"]
         temp =
-          state["temperature-info"]["water-temperature"]
-          |> (&((&1 * 9)/5 + 35)).()
-          |> inspect()
+          if temp_info && temp_info["water-temperature"] do
+            temp_info["water-temperature"]
+            |> (&((&1 * 9)/5 + 35)).()
+            |> inspect()
+          else
+            "unknown"
+          end
 
         cookerId = inspect(status[:last_apc_state]["cookerId"])
 
