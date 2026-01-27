@@ -237,6 +237,8 @@ defmodule AnovaManager.SousVide do
   end
 
   defp send_command(pid, command, payload) do
+    # remove any PIDs from payload as they are not serializable
+    payload = Map.reject(payload, fn {_k, v} -> is_pid(v) end)
     message = %{
       command: command,
       requestId: UUID.uuid4(),
