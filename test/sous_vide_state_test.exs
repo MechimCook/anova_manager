@@ -1,5 +1,5 @@
 defmodule AnovaManager.SousVideStateTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   setup do
     # ensure we use a simple test ws that doesn't try to connect to the real service

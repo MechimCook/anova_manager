@@ -1,6 +1,7 @@
 defmodule AnovaManagerWeb.RouterTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   import Plug.Test
+  import Plug.Conn
 
   setup do
     # speed up backoffs and inject test WS

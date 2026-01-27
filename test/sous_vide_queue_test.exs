@@ -1,5 +1,5 @@
 defmodule AnovaManager.SousVideQueueTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   import Plug.Test
 
   setup do
