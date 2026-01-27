@@ -7,7 +7,6 @@ defmodule AnovaManager.SousVideTest do
 
   test "start_cooking queues payload when not connected" do
     payload = %{cookerId: "abc", type: "APC", timer: 0, ws_pid: self(), connected: true}
-    IO.inspect(self())
     assert :ok = AnovaManager.SousVide.start_cooking(payload)
     # assert_receive {:start_cooking, _}
   end

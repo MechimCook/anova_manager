@@ -244,7 +244,6 @@ defmodule AnovaManager.SousVide do
       requestId: UUID.uuid4(),
       payload: payload
     }
-    |>IO.inspect()
     |> Jason.encode!()
 
     ws = ws_module()
