@@ -1,6 +1,6 @@
 defmodule AnovaManager.SousVideQueueTest do
   use ExUnit.Case
-  use Plug.Test
+  import Plug.Test
 
   setup do
     # ensure a predictable WS module that doesn't auto-connect
