@@ -17,7 +17,7 @@ defmodule AnovaWebSocket do
     end
   end
 
-  def disconect() do
+  def disconnect() do
     WebSockex.cast(__MODULE__, :close)
   end
 
@@ -56,7 +56,7 @@ defmodule AnovaWebSocket do
     end
   end
 
-  defp send_command(command, payload \\ %{}) when is_binary(command) do
+  defp send_command(command, payload) when is_binary(command) do
     case Process.whereis(__MODULE__) do
       nil ->
         {:error, :not_connected}
