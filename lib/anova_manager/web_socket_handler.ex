@@ -35,15 +35,3 @@ defmodule AnovaManager.WebSocketHandler do
     end
   end
 end
-
-
-defmodule AnovaWebSocket do
-  @moduledoc "Compatibility wrapper; prefer AnovaManager.SousVide for supervised usage"
-
-  defdelegate connect(token), to: AnovaManager.SousVide
-  defdelegate disconnect(), to: AnovaManager.SousVide
-  defdelegate start_cooking(payload), to: AnovaManager.SousVide
-  defdelegate stop_cooking(payload), to: AnovaManager.SousVide
-  defdelegate set_target_temperature(cooker_id, type, temp, opts \\ []), to: AnovaManager.SousVide
-  defdelegate get_APC_wifi_list(), to: AnovaManager.SousVide
-end

@@ -20,16 +20,16 @@ end
 examples for websocket
 
 ```elixir
-{:ok, pid} = AnovaWebSocket.connect(token)
+{:ok, pid} = AnovaManager.SousVide.connect(token)
 {:ok,
  [
    %{
      "cookerId" => cookerId,
      "type" => type
    }
- ]} = AnovaWebSocket.get_APC_wifi_list()
-AnovaWebSocket.start_cooking(%{cookerId: cookerId, type: type, unit: "F", targetTemperature: 135, timer: 60})
-AnovaWebSocket.stop_cooking(%{cookerId: cookerId, type: type})
+ ]} = AnovaManager.SousVide.get_APC_wifi_list()
+AnovaManager.SousVide.start_cooking(%{cookerId: cookerId, type: type, unit: "F", targetTemperature: 135, timer: 60})
+AnovaManager.SousVide.stop_cooking(%{cookerId: cookerId, type: type})
 ```
 
 error modes
