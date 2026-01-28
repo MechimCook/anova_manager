@@ -19,7 +19,14 @@ defmodule AnovaManagerWeb.RouterTest do
   defmodule TestWsLocal do
     def start_link(_uri, _handler, state) do
       parent = Map.get(state, :parent)
-      pid = spawn_link(fn -> receive do :stop -> :ok end end)
+
+      pid =
+        spawn_link(fn ->
+          receive do
+            :stop -> :ok
+          end
+        end)
+
       if parent, do: send(parent, {:ws_connected, pid})
       {:ok, pid}
     end
@@ -43,7 +50,9 @@ defmodule AnovaManagerWeb.RouterTest do
   test "GET /status returns JSON status" do
     conn = conn(:get, "/status") |> AnovaManagerWeb.Router.call([])
     assert conn.status == 200
-    assert List.first(get_resp_header(conn, "content-type")) |> String.starts_with?("application/json")
+
+    assert List.first(get_resp_header(conn, "content-type"))
+           |> String.starts_with?("application/json")
 
     body = Jason.decode!(conn.resp_body)
     assert Map.has_key?(body, "connected")

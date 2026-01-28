@@ -2,8 +2,8 @@ defmodule AnovaManagerWeb.Router do
   use Plug.Router
   use Plug.Debugger
 
-  plug :match
-  plug :dispatch
+  plug(:match)
+  plug(:dispatch)
 
   get "/" do
     body = AnovaManagerWeb.Pages.Home.render()
@@ -12,6 +12,7 @@ defmodule AnovaManagerWeb.Router do
 
   get "/status" do
     status = AnovaManager.SousVide.status()
+
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, Jason.encode!(status))
@@ -34,11 +35,15 @@ defmodule AnovaManagerWeb.Router do
     delay = Map.get(params, "delay", "0") |> String.to_integer()
 
     payload =
-    %{unit: "F"}
-    |> Map.merge(if cooker_id, do: %{cookerId: cooker_id}, else: %{})
-    |> Map.merge(if type, do: %{type: type}, else: %{})
-    |> Map.merge(if target_temp in [nil, ""], do: %{}, else: %{targetTemperature: String.to_integer(target_temp)})
-    |> Map.merge(if timer in [nil, ""], do: %{}, else: %{timer: String.to_integer(timer)})
+      %{unit: "F"}
+      |> Map.merge(if cooker_id, do: %{cookerId: cooker_id}, else: %{})
+      |> Map.merge(if type, do: %{type: type}, else: %{})
+      |> Map.merge(
+        if target_temp in [nil, ""],
+          do: %{},
+          else: %{targetTemperature: String.to_integer(target_temp)}
+      )
+      |> Map.merge(if timer in [nil, ""], do: %{}, else: %{timer: String.to_integer(timer)})
 
     if delay > 0 do
       # schedule delayed job in a separate process so it will call SousVide.start_cooking later

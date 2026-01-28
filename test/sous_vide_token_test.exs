@@ -25,7 +25,8 @@ defmodule AnovaManager.SousVideTokenTest do
 
     payload = %{cookerId: "abc", type: "APC", timer: 0}
     :ok = AnovaManager.SousVide.start_cooking(payload)
-    Process.sleep(10)  # allow GenServer to process
+    # allow GenServer to process
+    Process.sleep(10)
 
     # expect TestWsSuccess to send us the sent_frame message when send_frame is called
     assert_receive {:sent_frame, {:text, message}}, 200
@@ -40,15 +41,16 @@ defmodule AnovaManager.SousVideTokenTest do
     Application.put_env(:anova_manager, :ws_module, TestWsSeq)
     Application.put_env(:anova_manager, :test_pid, self())
 
-    log = capture_log(fn ->
-      {:error, _} = AnovaManager.SousVide.connect("tok")
+    log =
+      capture_log(fn ->
+        {:error, _} = AnovaManager.SousVide.connect("tok")
 
-      # trigger reconnect to force another start_link attempt (we set small backoff)
-      AnovaManager.SousVide.trigger_reconnect()
+        # trigger reconnect to force another start_link attempt (we set small backoff)
+        AnovaManager.SousVide.trigger_reconnect()
 
-      # wait a short bit for the second attempt to complete
-      :timer.sleep(50)
-    end)
+        # wait a short bit for the second attempt to complete
+        :timer.sleep(50)
+      end)
 
     assert log =~ "Failed to start WebSocket"
 

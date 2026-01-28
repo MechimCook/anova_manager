@@ -1,7 +1,14 @@
 defmodule TestWsSuccess do
   def start_link(_uri, _handler, state) do
     parent = Map.get(state, :parent)
-    pid = spawn_link(fn -> receive do :stop -> :ok end end)
+
+    pid =
+      spawn_link(fn ->
+        receive do
+          :stop -> :ok
+        end
+      end)
+
     if parent, do: send(parent, {:ws_connected, pid})
     # notify test process
     test_pid = Application.get_env(:anova_manager, :test_pid)
@@ -29,7 +36,14 @@ defmodule TestWsSeq do
 
       :ok ->
         parent = Map.get(state, :parent)
-        pid = spawn_link(fn -> receive do :stop -> :ok end end)
+
+        pid =
+          spawn_link(fn ->
+            receive do
+              :stop -> :ok
+            end
+          end)
+
         if parent, do: send(parent, {:ws_connected, pid})
         # notify test process
         test_pid = Application.get_env(:anova_manager, :test_pid)

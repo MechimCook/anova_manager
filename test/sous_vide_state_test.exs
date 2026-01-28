@@ -11,7 +11,10 @@ defmodule AnovaManager.SousVideStateTest do
   end
 
   test "EVENT_APC_STATE updates last_apc_state and is visible in status" do
-    msg = %{"command" => "EVENT_APC_STATE", "payload" => %{"state" => %{"id" => "dev1", "pin-info" => %{"p" => 1}}}}
+    msg = %{
+      "command" => "EVENT_APC_STATE",
+      "payload" => %{"state" => %{"id" => "dev1", "pin-info" => %{"p" => 1}}}
+    }
 
     send(AnovaManager.SousVide, {:ws_message, msg})
     # allow the GenServer to process

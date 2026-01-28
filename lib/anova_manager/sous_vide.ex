@@ -15,7 +15,9 @@ defmodule AnovaManager.SousVide do
 
   # dynamic helpers so tests can override backoff and ws module via application env
   defp ws_module(), do: Application.get_env(:anova_manager, :ws_module, WebSockex)
-  defp initial_backoff(), do: Application.get_env(:anova_manager, :initial_backoff, @initial_backoff)
+
+  defp initial_backoff(),
+    do: Application.get_env(:anova_manager, :initial_backoff, @initial_backoff)
 
   # Public API
   def start_link(_opts) do
@@ -57,7 +59,6 @@ defmodule AnovaManager.SousVide do
     }
 
     start_cooking(payload)
-
   end
 
   def get_APC_wifi_list do
@@ -96,11 +97,16 @@ defmodule AnovaManager.SousVide do
     uri = "#{@base_url}?token=#{token}&supportedAccessories=APC,APO"
     ws = ws_module()
 
-    case ws.start_link(uri, AnovaManager.WebSocketHandler, %{parent: self(), EVENT_APC_WIFI_LIST: []}) do
+    case ws.start_link(uri, AnovaManager.WebSocketHandler, %{
+           parent: self(),
+           EVENT_APC_WIFI_LIST: []
+         }) do
       {:ok, pid} ->
         Process.monitor(pid)
         Logger.info("Connected WebSocket (pid=#{inspect(pid)})")
-        {:ok, pid, %{state | token: token, ws_pid: pid, connected: true, backoff: initial_backoff()}}
+
+        {:ok, pid,
+         %{state | token: token, ws_pid: pid, connected: true, backoff: initial_backoff()}}
 
       {:error, reason} ->
         Logger.warning("Failed to start WebSocket: #{inspect(reason)}; scheduling reconnect")
@@ -119,7 +125,8 @@ defmodule AnovaManager.SousVide do
     end
   end
 
-  def handle_call(:disconnect, _from, %{ws_pid: nil} = state), do: {:reply, {:error, :not_connected}, state}
+  def handle_call(:disconnect, _from, %{ws_pid: nil} = state),
+    do: {:reply, {:error, :not_connected}, state}
 
   def handle_call(:disconnect, _from, state) do
     pid = state.ws_pid
@@ -129,8 +136,8 @@ defmodule AnovaManager.SousVide do
   end
 
   def handle_call({:schedule_cooking, %{timer: timer} = payload}, _from, state) do
-        Process.send_after(self(), {:start_cooking, payload}, timer)
-        {:reply, :ok, state}
+    Process.send_after(self(), {:start_cooking, payload}, timer)
+    {:reply, :ok, state}
   end
 
   def handle_call({:stop_cooking, payload}, _from, %{connected: true, ws_pid: pid} = state) do
@@ -215,7 +222,11 @@ defmodule AnovaManager.SousVide do
       Logger.info("Attempting reconnect")
       ws = ws_module()
 
-      case ws.start_link("#{@base_url}?token=#{state.token}&supportedAccessories=APC,APO", AnovaManager.WebSocketHandler, %{parent: self(), EVENT_APC_WIFI_LIST: []}) do
+      case ws.start_link(
+             "#{@base_url}?token=#{state.token}&supportedAccessories=APC,APO",
+             AnovaManager.WebSocketHandler,
+             %{parent: self(), EVENT_APC_WIFI_LIST: []}
+           ) do
         {:ok, pid} ->
           Process.monitor(pid)
           {:noreply, %{state | ws_pid: pid, connected: true, backoff: initial_backoff()}}
@@ -233,18 +244,21 @@ defmodule AnovaManager.SousVide do
     if state.ws_pid do
       send(state.ws_pid, :stop)
     end
+
     {:noreply, %{state | connected: false, ws_pid: nil}}
   end
 
   defp send_command(pid, command, payload) do
     # remove any PIDs from payload as they are not serializable
     payload = Map.reject(payload, fn {_k, v} -> is_pid(v) end)
-    message = %{
-      command: command,
-      requestId: UUID.uuid4(),
-      payload: payload
-    }
-    |> Jason.encode!()
+
+    message =
+      %{
+        command: command,
+        requestId: UUID.uuid4(),
+        payload: payload
+      }
+      |> Jason.encode!()
 
     ws = ws_module()
     ws.send_frame(pid, {:text, message})

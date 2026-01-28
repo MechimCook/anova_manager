@@ -17,17 +17,19 @@ defmodule AnovaManager.SousVideQueueTest do
     payload = %{cookerId: "q1", type: "APC", timer: 0}
 
     assert :ok = AnovaManager.SousVide.start_cooking(payload)
-    Process.sleep(10)  # allow GenServer to process
+    # allow GenServer to process
+    Process.sleep(10)
     status = AnovaManager.SousVide.status()
     assert is_list(status.queue)
-    assert [{:start_cooking,_}|_] = status.queue
+    assert [{:start_cooking, _} | _] = status.queue
   end
 
   test "HTML status shows queued jobs" do
     payload = %{cookerId: "q2", type: "APC", timer: 0}
     :ok = AnovaManager.SousVide.start_cooking(payload)
 
-    Process.sleep(10)  # allow GenServer to process
+    # allow GenServer to process
+    Process.sleep(10)
 
     conn = conn(:get, "/status_html") |> AnovaManagerWeb.Router.call([])
     assert conn.status == 200

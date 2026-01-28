@@ -4,25 +4,31 @@ defmodule AnovaManagerWeb.Pages.Status do
   def render(status) when is_map(status) do
     queue_html =
       case status[:queue] || status["queue"] do
-        [] -> "<p>No pending jobs</p>"
+        [] ->
+          "<p>No pending jobs</p>"
+
         q ->
-          items = Enum.map(q, fn
-            %{"type" => t, "payload" => p} -> "<li>#{t}: #{inspect(p)}</li>"
-            %{type: t, payload: p} -> "<li>#{t}: #{inspect(p)}</li>"
-            {t, p} -> "<li>#{t}: #{inspect(p)}</li>"
-            _ -> "<li>unknown</li>"
-          end)
+          items =
+            Enum.map(q, fn
+              %{"type" => t, "payload" => p} -> "<li>#{t}: #{inspect(p)}</li>"
+              %{type: t, payload: p} -> "<li>#{t}: #{inspect(p)}</li>"
+              {t, p} -> "<li>#{t}: #{inspect(p)}</li>"
+              _ -> "<li>unknown</li>"
+            end)
+
           "<ul>" <> Enum.join(items, "") <> "</ul>"
       end
 
-      state = status[:last_apc_state]["state"]
-      cooker_status =
+    state = status[:last_apc_state]["state"]
+
+    cooker_status =
       if state do
         temp_info = state["temperature-info"]
+
         temp =
           if temp_info && temp_info["water-temperature"] do
             temp_info["water-temperature"]
-            |> (&((&1 * 9)/5 + 35)).()
+            |> (&(&1 * 9 / 5 + 35)).()
             |> inspect()
           else
             "unknown"
@@ -46,8 +52,6 @@ defmodule AnovaManagerWeb.Pages.Status do
       else
         "<pre>no cooker connected</pre>"
       end
-
-
 
     """
     <html><body>
