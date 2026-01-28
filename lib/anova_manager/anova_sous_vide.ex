@@ -26,7 +26,7 @@ defmodule AnovaWebSocket do
   @doc "Stop cooking for the given cooker (pass payload with cookerId/type)."
   def stop_cooking(payload), do: send_command("CMD_APC_STOP", payload)
 
-   @doc """
+  @doc """
   Set target temperature and timer for the given cooker.
   Example: set_target_temperature(cooker_id, type, 55, unit: \"C\", timer: 60)
   """
@@ -45,14 +45,14 @@ defmodule AnovaWebSocket do
     send_command("CMD_APC_SET", payload)
   end
 
-    def get_APC_wifi_list() do
+  def get_APC_wifi_list() do
     case Process.whereis(__MODULE__) do
       nil ->
         {:error, :not_connected}
 
       pid ->
-          state = :sys.get_state(pid)
-          {:ok, Map.get(state, :EVENT_APC_WIFI_LIST, [])}
+        state = :sys.get_state(pid)
+        {:ok, Map.get(state, :EVENT_APC_WIFI_LIST, [])}
     end
   end
 
@@ -79,7 +79,8 @@ defmodule AnovaWebSocket do
     with {:ok, msg} <- Jason.decode(msg) do
       handle_message(msg, state)
     else
-      {:error, _} -> IO.puts("⚠️ Failed to decode message: #{msg}")
+      {:error, _} ->
+        IO.puts("⚠️ Failed to decode message: #{msg}")
         {:ok, state}
     end
   end
@@ -89,21 +90,26 @@ defmodule AnovaWebSocket do
     {:close, state}
   end
 
-
-  defp handle_message(%{"command" => "EVENT_APC_WIFI_LIST", "payload" => payload}, state), do:
-    {:ok, %{state | EVENT_APC_WIFI_LIST: payload}}
+  defp handle_message(%{"command" => "EVENT_APC_WIFI_LIST", "payload" => payload}, state),
+    do: {:ok, %{state | EVENT_APC_WIFI_LIST: payload}}
 
   defp handle_message(%{"command" => "RESPONSE", "payload" => %{"status" => "ok"}} = msg, state) do
     IO.puts("✅ Command response received: #{inspect(msg)}")
     {:ok, state}
   end
 
-  defp handle_message(%{"command" => "RESPONSE", "payload" => %{"status" => "error", "error" => error_msg}}, state) do
+  defp handle_message(
+         %{"command" => "RESPONSE", "payload" => %{"status" => "error", "error" => error_msg}},
+         state
+       ) do
     IO.puts("❌ Command error: #{error_msg}")
     {:ok, state}
   end
 
-  defp handle_message(%{"command" => "EVENT_APC_STATE", "payload" => %{"state" => %{"pin-info" => info}}}, state) do
+  defp handle_message(
+         %{"command" => "EVENT_APC_STATE", "payload" => %{"state" => %{"pin-info" => info}}},
+         state
+       ) do
     IO.inspect(info)
     {:ok, state}
   end
